@@ -9,13 +9,14 @@
 @import CoreLocation;
 @import MapKit;
 
-@interface ViewController ()
+@interface ViewController () <MKMapViewDelegate>
 //core location geocoder
 
 @property (strong, nonatomic) CLGeocoder *geocoder;
 @property (weak, nonatomic) IBOutlet MKMapView *MapView;
 @property (weak, nonatomic) IBOutlet UILabel *geocodeLabel;
 @property (weak, nonatomic) IBOutlet UIImageView *pinIcon;
+@property (assign, nonatomic) BOOL lookupUp;
 
 @end
 
@@ -28,13 +29,18 @@
     self.geocodeLabel.alpha = 0.5;
 }
 
-- (IBAction)reverseGeocodeTapped:(id)sender {
-    //create a coodinate based on current map orientation
-    CLLocationCoordinate2D coord = [self locationAtCenterOfMapView];
-    CLLocation *loc = [[CLLocation alloc] initWithLatitude:coord.latitude longitude:coord.longitude];
-    [self startReverseGeocodeLocation: loc];
+-(void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated {
+    [self executeTheLookUp];
 }
-
+- (void) executeTheLookUp {
+    if (self.lookupUp == NO) {
+        self.lookupUp = YES;
+        //create a coodinate based on current map orientation
+        CLLocationCoordinate2D coord = [self locationAtCenterOfMapView];
+        CLLocation *loc = [[CLLocation alloc] initWithLatitude:coord.latitude longitude:coord.longitude];
+        [self startReverseGeocodeLocation: loc];
+    }
+}
 - (CLLocationCoordinate2D)locationAtCenterOfMapView {
     CGPoint centerOfPin = CGPointMake(CGRectGetMidX(self.pinIcon.bounds), CGRectGetMidY(self.pinIcon.bounds)); // in ImageView coord space
     return [self.MapView convertPoint:centerOfPin toCoordinateFromView:self.pinIcon];  // getting the location at center of pin
@@ -63,7 +69,9 @@
         self.geocodeLabel.text = [[mappedPlaceDescs allObjects]
             componentsJoinedByString:@"\n"];
         self.geocodeLabel.alpha = 1.0;
+        self.lookupUp = NO;
         
     }];
 }
 @end
+
